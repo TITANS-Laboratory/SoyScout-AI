@@ -1,0 +1,1108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SoyScout AI</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --earth: #2C1810;
+  --soil: #3E2723;
+  --field-green: #2E7D32;
+  --leaf: #43A047;
+  --leaf-light: #66BB6A;
+  --golden: #F9A825;
+  --golden-light: #FDD835;
+  --cream: #FFF8E1;
+  --warm-white: #FFFDF7;
+  --warm-gray: #F5F0E8;
+  --text-primary: #1B1108;
+  --text-secondary: #5D4E37;
+  --text-muted: #8D7B65;
+  --accent-rust: #BF5B21;
+  --sky: #E3F2FD;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'IBM Plex Sans', sans-serif;
+  color: var(--text-primary);
+  background: var(--warm-white);
+  overflow-x: hidden;
+}
+
+/* === HERO === */
+.hero {
+  min-height: 100vh;
+  background: linear-gradient(165deg, var(--earth) 0%, var(--soil) 40%, var(--field-green) 100%);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 2rem;
+  overflow: hidden;
+}
+
+.hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 80% 60% at 75% 20%, rgba(46,125,50,0.3) 0%, transparent 70%),
+    radial-gradient(ellipse 50% 50% at 20% 80%, rgba(249,168,37,0.15) 0%, transparent 60%);
+  pointer-events: none;
+}
+
+.hero::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 200px;
+  background: linear-gradient(to top, var(--warm-white), transparent);
+  pointer-events: none;
+}
+
+/* Grain texture overlay */
+.grain {
+  position: absolute;
+  inset: 0;
+  opacity: 0.08;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  pointer-events: none;
+}
+
+.hero-nav {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  padding: 1.5rem 2.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 10;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: var(--cream);
+  text-decoration: none;
+}
+
+.logo-icon {
+  width: 44px;
+  height: 44px;
+  background: var(--golden);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  transform: rotate(-5deg);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+
+.logo-text {
+  font-family: 'DM Serif Display', serif;
+  font-size: 1.4rem;
+  letter-spacing: -0.02em;
+}
+
+.nav-links {
+  display: flex;
+  gap: 2rem;
+  list-style: none;
+}
+
+.nav-links a {
+  color: rgba(255,248,225,0.8);
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  transition: color 0.3s;
+}
+
+.nav-links a:hover { color: var(--golden); }
+
+.hero-content {
+  max-width: 820px;
+  margin: 0 auto;
+  text-align: center;
+  position: relative;
+  z-index: 5;
+  animation: fadeUp 1s ease-out;
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(255,248,225,0.12);
+  border: 1px solid rgba(255,248,225,0.2);
+  border-radius: 100px;
+  padding: 0.5rem 1.2rem;
+  font-size: 0.82rem;
+  color: var(--golden-light);
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  margin-bottom: 2rem;
+  backdrop-filter: blur(8px);
+}
+
+.hero-badge::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  background: var(--golden);
+  border-radius: 50%;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+.hero h1 {
+  font-family: 'DM Serif Display', serif;
+  font-size: clamp(2.8rem, 6vw, 4.5rem);
+  color: var(--cream);
+  line-height: 1.1;
+  margin-bottom: 1.5rem;
+  letter-spacing: -0.02em;
+}
+
+.hero h1 .accent { color: var(--golden); }
+
+.hero-sub {
+  font-size: 1.15rem;
+  color: rgba(255,248,225,0.75);
+  line-height: 1.7;
+  max-width: 600px;
+  margin: 0 auto 2.5rem;
+  font-weight: 300;
+}
+
+.hero-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  background: var(--golden);
+  color: var(--earth);
+  padding: 1rem 2rem;
+  border-radius: 12px;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 1rem;
+  transition: all 0.3s;
+  box-shadow: 0 4px 20px rgba(249,168,37,0.4);
+}
+
+.hero-cta:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(249,168,37,0.5);
+}
+
+.hero-cta .arrow { transition: transform 0.3s; }
+.hero-cta:hover .arrow { transform: translateX(4px); }
+
+.hero-buttons {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.hero-demo {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  background: rgba(255,248,225,0.12);
+  color: var(--cream);
+  padding: 1rem 2rem;
+  border-radius: 12px;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 1rem;
+  transition: all 0.3s;
+  border: 2px solid rgba(255,248,225,0.3);
+  backdrop-filter: blur(8px);
+}
+
+.hero-demo:hover {
+  background: rgba(255,248,225,0.2);
+  border-color: rgba(255,248,225,0.5);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+}
+
+.hero-demo .play-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(255,248,225,0.2);
+  font-size: 0.8rem;
+  transition: background 0.3s;
+}
+
+.hero-demo:hover .play-icon {
+  background: rgba(255,248,225,0.3);
+}
+
+/* === SECTIONS SHARED === */
+section {
+  padding: 6rem 2rem;
+}
+
+.section-inner {
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.section-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.78rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--field-green);
+  margin-bottom: 1rem;
+}
+
+.section-title {
+  font-family: 'DM Serif Display', serif;
+  font-size: clamp(2rem, 4vw, 2.8rem);
+  color: var(--text-primary);
+  margin-bottom: 1.2rem;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+}
+
+.section-desc {
+  font-size: 1.05rem;
+  color: var(--text-secondary);
+  line-height: 1.7;
+  max-width: 640px;
+  font-weight: 300;
+}
+
+/* === PROBLEM === */
+.problem {
+  background: var(--warm-gray);
+  position: relative;
+}
+
+.problem-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4rem;
+  align-items: center;
+  margin-top: 3rem;
+}
+
+.problem-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+}
+
+.stat-card {
+  background: var(--warm-white);
+  border-radius: 16px;
+  padding: 1.8rem;
+  border: 1px solid rgba(0,0,0,0.05);
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.stat-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.08);
+}
+
+.stat-number {
+  font-family: 'DM Serif Display', serif;
+  font-size: 2.4rem;
+  color: var(--field-green);
+  margin-bottom: 0.3rem;
+}
+
+.stat-label {
+  font-size: 0.88rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+/* === FEATURES === */
+.features { background: var(--warm-white); }
+
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 2rem;
+  margin-top: 3.5rem;
+}
+
+.feature-card {
+  background: var(--warm-gray);
+  border-radius: 20px;
+  padding: 2.5rem 2rem;
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.3s, box-shadow 0.3s;
+  border: 1px solid rgba(0,0,0,0.03);
+}
+
+.feature-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 20px 60px rgba(0,0,0,0.08);
+}
+
+.feature-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  border-radius: 20px 20px 0 0;
+}
+
+.feature-card:nth-child(1)::before { background: var(--field-green); }
+.feature-card:nth-child(2)::before { background: var(--golden); }
+.feature-card:nth-child(3)::before { background: var(--accent-rust); }
+.feature-card:nth-child(4)::before { background: var(--leaf); }
+
+.feature-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.6rem;
+  margin-bottom: 1.5rem;
+}
+
+.feature-card:nth-child(1) .feature-icon { background: rgba(46,125,50,0.1); }
+.feature-card:nth-child(2) .feature-icon { background: rgba(249,168,37,0.15); }
+.feature-card:nth-child(3) .feature-icon { background: rgba(191,91,33,0.1); }
+.feature-card:nth-child(4) .feature-icon { background: rgba(67,160,71,0.1); }
+
+.feature-title {
+  font-family: 'DM Serif Display', serif;
+  font-size: 1.3rem;
+  margin-bottom: 0.75rem;
+  color: var(--text-primary);
+}
+
+.feature-desc {
+  font-size: 0.92rem;
+  color: var(--text-secondary);
+  line-height: 1.65;
+  font-weight: 300;
+}
+
+/* === GROWTH STAGE TIMELINE === */
+.timeline {
+  background: var(--warm-gray);
+}
+
+.stage-track {
+  display: flex;
+  gap: 0;
+  margin-top: 3rem;
+  position: relative;
+  overflow-x: auto;
+  padding-bottom: 1rem;
+}
+
+.stage-track::before {
+  content: '';
+  position: absolute;
+  top: 36px;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--field-green), var(--leaf), var(--golden), var(--accent-rust));
+  border-radius: 2px;
+}
+
+.stage {
+  flex: 1;
+  min-width: 130px;
+  text-align: center;
+  position: relative;
+  padding-top: 60px;
+}
+
+.stage-dot {
+  position: absolute;
+  top: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 24px;
+  height: 24px;
+  background: var(--warm-white);
+  border: 3px solid var(--field-green);
+  border-radius: 50%;
+  z-index: 2;
+  transition: all 0.3s;
+}
+
+.stage:hover .stage-dot {
+  background: var(--field-green);
+  transform: translateX(-50%) scale(1.2);
+}
+
+.stage-name {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--field-green);
+  margin-bottom: 0.4rem;
+}
+
+.stage-info {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+  padding: 0 0.5rem;
+}
+
+/* === TEAM === */
+.team { background: var(--warm-white); }
+
+.team-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2rem;
+  margin-top: 3.5rem;
+}
+
+.team-card {
+  background: var(--warm-gray);
+  border-radius: 20px;
+  padding: 2.5rem 2rem;
+  text-align: center;
+  transition: transform 0.3s;
+  border: 1px solid rgba(0,0,0,0.03);
+}
+
+.team-card:hover { transform: translateY(-4px); }
+
+.team-avatar {
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  margin: 0 auto 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'DM Serif Display', serif;
+  font-size: 1.8rem;
+  color: white;
+}
+
+.team-card:nth-child(1) .team-avatar {
+  background: linear-gradient(135deg, var(--soil), var(--earth));
+}
+.team-card:nth-child(2) .team-avatar {
+  background: linear-gradient(135deg, var(--field-green), var(--leaf));
+}
+.team-card:nth-child(3) .team-avatar {
+  background: linear-gradient(135deg, var(--accent-rust), var(--golden));
+}
+
+.team-name {
+  font-family: 'DM Serif Display', serif;
+  font-size: 1.25rem;
+  margin-bottom: 0.3rem;
+}
+
+.team-role {
+  font-size: 0.82rem;
+  color: var(--field-green);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 0.6rem;
+}
+
+.team-dept {
+  font-size: 0.88rem;
+  color: var(--text-muted);
+  margin-bottom: 1rem;
+  line-height: 1.5;
+}
+
+.team-focus {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  font-weight: 300;
+}
+
+/* === FUNDING === */
+.funding {
+  background: linear-gradient(165deg, var(--earth) 0%, var(--soil) 60%, var(--field-green) 100%);
+  color: var(--cream);
+  position: relative;
+  overflow: hidden;
+}
+
+.funding .grain { opacity: 0.06; }
+
+.funding .section-label { color: var(--golden); }
+.funding .section-title { color: var(--cream); }
+.funding .section-desc { color: rgba(255,248,225,0.7); }
+
+.funding-logos {
+  display: flex;
+  align-items: center;
+  gap: 3rem;
+  margin-top: 3rem;
+  flex-wrap: wrap;
+}
+
+.funding-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background: rgba(255,248,225,0.08);
+  border: 1px solid rgba(255,248,225,0.15);
+  border-radius: 16px;
+  padding: 1.5rem 2rem;
+  backdrop-filter: blur(8px);
+}
+
+.funding-icon {
+  width: 50px;
+  height: 50px;
+  border-radius: 12px;
+  background: rgba(255,248,225,0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+}
+
+.funding-name {
+  font-weight: 600;
+  font-size: 0.95rem;
+  margin-bottom: 0.2rem;
+}
+
+.funding-sub {
+  font-size: 0.8rem;
+  color: rgba(255,248,225,0.6);
+}
+
+/* === CONTACT === */
+.contact { background: var(--warm-gray); }
+
+.contact-box {
+  background: var(--warm-white);
+  border-radius: 24px;
+  padding: 3rem;
+  margin-top: 2.5rem;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3rem;
+  border: 1px solid rgba(0,0,0,0.05);
+}
+
+.contact-info h3 {
+  font-family: 'DM Serif Display', serif;
+  font-size: 1.4rem;
+  margin-bottom: 1.5rem;
+}
+
+.contact-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.contact-item-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: rgba(46,125,50,0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 1.1rem;
+}
+
+.contact-item-label {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 0.2rem;
+}
+
+.contact-item-value {
+  font-size: 0.95rem;
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.contact-item-value a {
+  color: var(--field-green);
+  text-decoration: none;
+}
+
+.contact-item-value a:hover { text-decoration: underline; }
+
+.contact-map {
+  background: linear-gradient(135deg, var(--warm-gray), rgba(46,125,50,0.05));
+  border-radius: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  text-align: center;
+}
+
+.contact-map-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+
+.contact-map-text {
+  font-family: 'DM Serif Display', serif;
+  font-size: 1.1rem;
+  color: var(--text-primary);
+  margin-bottom: 0.5rem;
+}
+
+.contact-map-sub {
+  font-size: 0.88rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+/* === FOOTER === */
+footer {
+  background: var(--earth);
+  color: rgba(255,248,225,0.5);
+  padding: 2.5rem 2rem;
+  text-align: center;
+  font-size: 0.85rem;
+}
+
+footer a {
+  color: var(--golden);
+  text-decoration: none;
+}
+
+/* === RESPONSIVE === */
+@media (max-width: 900px) {
+  .nav-links { display: none; }
+  .problem-grid { grid-template-columns: 1fr; gap: 2.5rem; }
+  .features-grid { grid-template-columns: 1fr; }
+  .team-grid { grid-template-columns: 1fr; }
+  .contact-box { grid-template-columns: 1fr; }
+  .stage-track { gap: 0; }
+  .stage { min-width: 100px; }
+}
+
+@media (max-width: 600px) {
+  section { padding: 4rem 1.2rem; }
+  .hero { padding: 1.5rem; }
+  .hero-nav { padding: 1rem 1.2rem; }
+  .problem-stats { grid-template-columns: 1fr; }
+  .contact-box { padding: 2rem 1.5rem; }
+}
+
+/* Scroll animations */
+.reveal {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.8s ease, transform 0.8s ease;
+}
+
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="grain"></div>
+  <nav class="hero-nav">
+    <a href="#" class="logo">
+      <div class="logo-icon">🌱</div>
+      <span class="logo-text">SoyScout AI</span>
+    </a>
+    <ul class="nav-links">
+      <li><a href="#about">About</a></li>
+      <li><a href="#features">Features</a></li>
+      <li><a href="#stages">Growth Stages</a></li>
+      <!-- <li><a href="#team">Team</a></li> -->
+      <li><a href="#contact">Contact</a></li>
+    </ul>
+  </nav>
+
+  <div class="hero-content">
+    <div class="hero-badge">ISA FY27 Research Proposal</div>
+    <h1>Smarter Scouting,<br><span class="accent">Stage by Stage</span></h1>
+    <p class="hero-sub">
+      An AI-powered decision support tool that guides Illinois soybean farmers through every growth stage: with real-time pest identification, nutrient recommendations, and per-acre economics.
+    </p>
+    <div class="hero-buttons">
+      <!-- <a href="#about" class="hero-cta">
+        Learn About the Project <span class="arrow">→</span>
+      </a> -->
+      <a href="soyscout-demo.html" class="hero-cta" target="_blank">
+        <span class="play-icon">▶</span> Try the Interactive Demo
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- PROBLEM -->
+<section class="problem" id="about">
+  <div class="section-inner">
+    <div class="section-label">The Challenge</div>
+    <div class="section-title">Farmers Need Better In-Season<br>Decision Tools</div>
+    <div class="section-desc" style="margin-bottom: 0;">
+      Illinois soybean farmers face growing complexity in managing pests, diseases, nutrients, and weeds — yet no single tool integrates these decisions into a unified, growth-stage framework built for Illinois conditions.
+    </div>
+
+    <div class="problem-grid">
+      <div>
+        <p style="color: var(--text-secondary); line-height: 1.8; font-weight: 300; font-size: 0.95rem; margin-bottom: 1.5rem;">
+          The ISA February 2026 Researcher Roundtable identified a critical gap: farmers need a decision support application that provides actionable, in-field guidance organized by growth stage — showing what to look for and when to act throughout the season.
+        </p>
+        <p style="color: var(--text-secondary); line-height: 1.8; font-weight: 300; font-size: 0.95rem;">
+          SoyScout AI addresses this gap with a mobile-friendly tool that combines AI-powered diagnostics, agronomic expertise, and per-acre economic analysis — purpose-built for the unique challenges of Illinois soybean production, from Southern to Northern Illinois.
+        </p>
+      </div>
+      <div class="problem-stats">
+        <div class="stat-card">
+          <div class="stat-number">43K+</div>
+          <div class="stat-label">Illinois soybean farmers served by ISA checkoff</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number">VE–R8</div>
+          <div class="stat-label">Full growth stage coverage from emergence to maturity</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number">15+</div>
+          <div class="stat-label">Diseases, pests & deficiencies identifiable by AI</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number">$/acre</div>
+          <div class="stat-label">Every recommendation includes per-acre ROI analysis</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section class="features" id="features">
+  <div class="section-inner">
+    <div class="section-label">Core Capabilities</div>
+    <div class="section-title">What SoyScout AI Does</div>
+    <div class="section-desc">Four integrated modules designed around what farmers actually need in the field.</div>
+
+    <div class="features-grid">
+      <div class="feature-card reveal">
+        <div class="feature-icon">📋</div>
+        <div class="feature-title">Growth-Stage Scouting Guides</div>
+        <div class="feature-desc">
+          Stage-specific checklists from VE through R8 tell you exactly what to scout for, when action thresholds are reached, and what management options are available — customized for your region of Illinois.
+        </div>
+      </div>
+
+      <div class="feature-card reveal">
+        <div class="feature-icon">📸</div>
+        <div class="feature-title">AI-Powered Field Diagnosis</div>
+        <div class="feature-desc">
+          Snap a photo of a suspicious leaf, pest, or weed with your phone. Our machine learning models identify the problem and recommend management actions — trained on Illinois-specific soybean conditions.
+        </div>
+      </div>
+
+      <div class="feature-card reveal">
+        <div class="feature-icon">💰</div>
+        <div class="feature-title">Per-Acre Economic Analysis</div>
+        <div class="feature-desc">
+          Every recommendation includes cost-benefit analysis on a per-acre basis. Input your acreage to see projected payback timelines — because management decisions should always pencil out.
+        </div>
+      </div>
+
+      <div class="feature-card reveal">
+        <div class="feature-icon">🌾</div>
+        <div class="feature-title">Regional Customization</div>
+        <div class="feature-desc">
+          Disease pressure, soil conditions, and management timing vary across Illinois. SoyScout AI incorporates regional parameters for Southern, Central, and Northern Illinois to provide locally relevant guidance.
+        </div>
+      </div>
+    </div>
+
+    <div style="text-align: center; margin-top: 3rem;">
+      <a href="soyscout-demo.html" target="_blank" style="
+        display: inline-flex;
+        align-items: center;
+        gap: 0.7rem;
+        background: var(--field-green);
+        color: white;
+        padding: 1rem 2.2rem;
+        border-radius: 14px;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 1rem;
+        transition: all 0.3s;
+        box-shadow: 0 4px 20px rgba(46,125,50,0.3);
+      " onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 8px 30px rgba(46,125,50,0.4)'" onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='0 4px 20px rgba(46,125,50,0.3)'">
+        ▶ &nbsp;See It In Action — Try the Interactive Demo
+      </a>
+    </div>
+  </div>
+</section>
+<section class="timeline" id="stages">
+  <div class="section-inner">
+    <div class="section-label">Season Coverage</div>
+    <div class="section-title">Guidance at Every Growth Stage</div>
+    <div class="section-desc">From emergence to harvest maturity, SoyScout AI provides stage-appropriate scouting priorities, risk alerts, and management recommendations.</div>
+
+    <div class="stage-track">
+      <div class="stage">
+        <div class="stage-dot"></div>
+        <div class="stage-name">VE</div>
+        <div class="stage-info">Emergence<br>Stand assessment</div>
+      </div>
+      <div class="stage">
+        <div class="stage-dot"></div>
+        <div class="stage-name">VC–V2</div>
+        <div class="stage-info">Early vegetative<br>Herbicide timing</div>
+      </div>
+      <div class="stage">
+        <div class="stage-dot"></div>
+        <div class="stage-name">V3–V5</div>
+        <div class="stage-info">Canopy development<br>Nutrient scouting</div>
+      </div>
+      <div class="stage">
+        <div class="stage-dot"></div>
+        <div class="stage-name">V6–Vn</div>
+        <div class="stage-info">Late vegetative<br>Disease onset watch</div>
+      </div>
+      <div class="stage">
+        <div class="stage-dot"></div>
+        <div class="stage-name">R1–R2</div>
+        <div class="stage-info">Flowering<br>Fungicide decisions</div>
+      </div>
+      <div class="stage">
+        <div class="stage-dot"></div>
+        <div class="stage-name">R3–R4</div>
+        <div class="stage-info">Pod development<br>SDS & SCN watch</div>
+      </div>
+      <div class="stage">
+        <div class="stage-dot"></div>
+        <div class="stage-name">R5–R6</div>
+        <div class="stage-info">Seed fill<br>Late-season stress</div>
+      </div>
+      <div class="stage">
+        <div class="stage-dot"></div>
+        <div class="stage-name">R7–R8</div>
+        <div class="stage-info">Maturity<br>Harvest planning</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TEAM -->
+<!-- <section class="team" id="team">
+  <div class="section-inner">
+    <div class="section-label">Research Team</div>
+    <div class="section-title">Cross-Disciplinary Expertise<br>at SIU Carbondale</div>
+    <div class="section-desc">A team combining AI and software engineering with decades of agronomic and plant pathology experience in Illinois soybean systems.</div>
+
+    <div class="team-grid">
+      <div class="team-card reveal">
+        <div class="team-avatar">AK</div>
+        <div class="team-name">Dr. Alvi Ataur Khalil</div>
+        <div class="team-role">Principal Investigator</div>
+        <div class="team-dept">School of Computing</div>
+        <div class="team-focus">
+          Machine learning, AI-based systems, and software engineering. Leads app architecture, ML model development, and user experience design. NSF I-Corps trained with 105 customer discovery interviews.
+        </div>
+      </div>
+
+      <div class="team-card reveal">
+        <div class="team-avatar">AS</div>
+        <div class="team-name">Dr. Amir Sadeghpour</div>
+        <div class="team-role">Co-Principal Investigator</div>
+        <div class="team-dept">School of Agricultural Sciences</div>
+        <div class="team-focus">
+          Soil management and integrated cropping systems. Leads the nutrient management decision framework, economic modeling, and farmer engagement through SIU field day networks.
+        </div>
+      </div>
+
+      <div class="team-card reveal">
+        <div class="team-avatar">JB</div>
+        <div class="team-name">Dr. Jason Bond</div>
+        <div class="team-role">Co-Principal Investigator</div>
+        <div class="team-dept">School of Agricultural Sciences</div>
+        <div class="team-focus">
+          Soybean plant pathology and disease management. Leads disease and pest scouting framework, ML model validation, and brings decades of farmer relationships across Illinois.
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+ -->
+<!-- FUNDING -->
+<section class="funding">
+  <div class="grain"></div>
+  <div class="section-inner" style="position: relative; z-index: 2;">
+    <div class="section-label">Funding & Affiliation</div>
+    <div class="section-title">Intended to be supported by <br>Illinois Soybean Checkoff Dollars</div>
+    <div class="section-desc">
+      This project seeks funding through the Illinois Soybean Association Checkoff Program for fiscal year 2027, representing the investment of more than 43,000 Illinois soybean farmers.
+    </div>
+
+    <div class="funding-logos">
+      <div class="funding-item">
+        <div class="funding-icon">🫘</div>
+        <div>
+          <div class="funding-name">Illinois Soybean Association</div>
+          <div class="funding-sub">Checkoff Program — FY27</div>
+        </div>
+      </div>
+      <div class="funding-item">
+        <div class="funding-icon">🎓</div>
+        <div>
+          <div class="funding-name">Southern Illinois University</div>
+          <div class="funding-sub">Carbondale — R1 Research University</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section class="contact" id="contact">
+  <div class="section-inner">
+    <div class="section-label">Get In Touch</div>
+    <div class="section-title">Interested in Collaborating<br>or Participating?</div>
+    <div class="section-desc">
+      We're seeking Illinois soybean farmers to pilot-test SoyScout AI during the 2027 growing season. Researchers and industry partners are also welcome to connect.
+    </div>
+
+    <div class="contact-box">
+      <div class="contact-info">
+        <h3>Contact the PI</h3>
+
+        <div class="contact-item">
+          <div class="contact-item-icon">👤</div>
+          <div>
+            <div class="contact-item-label">Principal Investigator</div>
+            <div class="contact-item-value">Dr. Alvi Ataur Khalil</div>
+          </div>
+        </div>
+
+        <div class="contact-item">
+          <div class="contact-item-icon">✉️</div>
+          <div>
+            <div class="contact-item-label">Email</div>
+            <div class="contact-item-value"><a href="mailto:a.khalil@siu.edu">a.khalil@siu.edu</a></div>
+          </div>
+        </div>
+
+        <div class="contact-item">
+          <div class="contact-item-icon">📞</div>
+          <div>
+            <div class="contact-item-label">Phone</div>
+            <div class="contact-item-value">(618) 453-4656</div>
+          </div>
+        </div>
+
+        <div class="contact-item">
+          <div class="contact-item-icon">🏛️</div>
+          <div>
+            <div class="contact-item-label">Department</div>
+            <div class="contact-item-value">School of Computing, SIU Carbondale</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="contact-map">
+        <div class="contact-map-icon">🏫</div>
+        <div class="contact-map-text">Southern Illinois University Carbondale</div>
+        <div class="contact-map-sub">
+          Carbondale, Illinois 62901<br>
+          In the heart of Southern Illinois soybean country
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <p>&copy; 2026 SoyScout AI: Southern Illinois University Carbondale. Seeking funding from the <a href="https://www.ilsoy.org/" target="_blank">Illinois Soybean Association</a> Checkoff Program.</p>
+  <p style="margin-top: 0.5rem; font-size: 0.78rem; opacity: 0.7;">School of Computing &amp; School of Agricultural Sciences</p>
+</footer>
+
+<script>
+// Scroll reveal animation
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('visible');
+    }
+  });
+}, { threshold: 0.15 });
+
+document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+// Smooth nav active state
+const sections = document.querySelectorAll('section[id]');
+window.addEventListener('scroll', () => {
+  const scrollY = window.pageYOffset;
+  sections.forEach(section => {
+    const top = section.offsetTop - 100;
+    const height = section.offsetHeight;
+    const id = section.getAttribute('id');
+    const link = document.querySelector(`.nav-links a[href="#${id}"]`);
+    if (link) {
+      if (scrollY >= top && scrollY < top + height) {
+        link.style.color = '#F9A825';
+      } else {
+        link.style.color = 'rgba(255,248,225,0.8)';
+      }
+    }
+  });
+});
+</script>
+
+</body>
+</html>

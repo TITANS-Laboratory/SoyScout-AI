@@ -1,0 +1,1091 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SoyScout AI — Interactive Demo</title>
+<link href="https://fonts.googleapis.com/css2?family=Bitter:wght@400;600;700&family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --earth: #2C1810;
+  --soil: #3E2723;
+  --green-900: #1B5E20;
+  --green-700: #2E7D32;
+  --green-500: #43A047;
+  --green-300: #81C784;
+  --green-100: #C8E6C9;
+  --green-50: #E8F5E9;
+  --gold-700: #F57F17;
+  --gold-500: #F9A825;
+  --gold-300: #FDD835;
+  --gold-50: #FFF8E1;
+  --rust: #BF5B21;
+  --rust-deep: #E65100;
+  --red-700: #D32F2F;
+  --red-50: #FFEBEE;
+  --cream: #FFF8E1;
+  --warm-white: #FFFDF7;
+  --warm-gray: #F5F0E8;
+  --text-primary: #1B1108;
+  --text-secondary: #5D4E37;
+  --text-muted: #8D7B65;
+  --border-light: #E8E0D4;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'IBM Plex Sans', -apple-system, sans-serif;
+  color: var(--text-primary);
+  background: linear-gradient(145deg, var(--warm-gray) 0%, var(--warm-white) 50%, var(--green-50) 100%);
+  min-height: 100vh;
+  padding: 24px 16px;
+}
+
+.app { max-width: 500px; margin: 0 auto; }
+
+/* Header */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.header-left { display: flex; align-items: center; gap: 10px; }
+
+.logo-icon {
+  width: 42px; height: 42px; border-radius: 12px;
+  background: linear-gradient(135deg, var(--green-700), var(--green-500));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px;
+  box-shadow: 0 4px 14px rgba(46,125,50,0.35);
+  transform: rotate(-5deg);
+}
+
+.logo-title { font-family: 'Bitter', serif; font-weight: 700; font-size: 19px; color: var(--text-primary); }
+.logo-sub { font-size: 11px; color: var(--text-muted); letter-spacing: 0.06em; }
+
+.demo-badge {
+  background: var(--gold-50);
+  border: 1px solid var(--gold-500);
+  border-radius: 100px;
+  padding: 6px 14px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--gold-700);
+  letter-spacing: 0.04em;
+}
+
+/* Region selector */
+.region-bar { display: flex; gap: 8px; margin-bottom: 16px; }
+
+.region-btn {
+  flex: 1;
+  padding: 9px 4px;
+  border-radius: 10px;
+  border: 1px solid var(--border-light);
+  background: white;
+  color: var(--text-muted);
+  font-family: inherit;
+  font-weight: 400;
+  font-size: 12.5px;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-transform: capitalize;
+}
+
+.region-btn.active {
+  border: 2px solid var(--green-700);
+  background: var(--green-50);
+  color: var(--green-700);
+  font-weight: 600;
+}
+
+/* Growth stage track */
+.stage-panel {
+  background: white;
+  border-radius: 16px;
+  padding: 16px 12px;
+  margin-bottom: 16px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+  border: 1px solid rgba(0,0,0,0.04);
+}
+
+.stage-label {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+
+.stage-track {
+  display: flex;
+  position: relative;
+  gap: 0;
+}
+
+.stage-rail {
+  position: absolute;
+  top: 14px;
+  left: 16px;
+  right: 16px;
+  height: 3px;
+  background: var(--border-light);
+  border-radius: 2px;
+  z-index: 0;
+}
+
+.stage-progress {
+  height: 100%;
+  background: linear-gradient(90deg, var(--green-700), var(--green-500), var(--gold-500));
+  border-radius: 2px;
+  transition: width 0.4s ease;
+}
+
+.stage-btn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0 1px;
+  position: relative;
+  z-index: 1;
+}
+
+.stage-dot {
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  background: white;
+  border: 2px solid var(--border-light);
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.stage-dot.past {
+  background: var(--green-100);
+  border-color: #A5D6A7;
+}
+
+.stage-dot.active {
+  width: 30px; height: 30px;
+  border-width: 3px;
+  box-shadow: 0 0 0 4px rgba(46,125,50,0.15);
+}
+
+.stage-dot.active::after {
+  content: '';
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: white;
+}
+
+.stage-id {
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--text-muted);
+  font-family: 'IBM Plex Mono', monospace;
+  transition: all 0.3s;
+}
+
+.stage-id.active {
+  font-weight: 700;
+}
+
+/* Stage header */
+.stage-header {
+  border-radius: 16px;
+  padding: 18px 20px;
+  margin-bottom: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.stage-header h2 {
+  font-family: 'Bitter', serif;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.stage-header-meta {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 3px;
+}
+
+.scan-btn {
+  background: linear-gradient(135deg, var(--green-700), var(--green-500));
+  color: white;
+  border: none;
+  border-radius: 12px;
+  padding: 10px 18px;
+  font-family: inherit;
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 4px 14px rgba(46,125,50,0.3);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.scan-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 22px rgba(46,125,50,0.4);
+}
+
+/* Tabs */
+.tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 16px;
+  background: white;
+  border-radius: 14px;
+  padding: 4px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+}
+
+.tab-btn {
+  flex: 1;
+  padding: 10px 4px;
+  border-radius: 10px;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  font-family: inherit;
+  font-weight: 400;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.tab-btn.active {
+  background: var(--green-700);
+  color: white;
+  font-weight: 600;
+}
+
+/* Content panel */
+.content-panel {
+  background: white;
+  border-radius: 20px;
+  padding: 20px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.06);
+  border: 1px solid rgba(0,0,0,0.04);
+  margin-bottom: 20px;
+  min-height: 200px;
+}
+
+.panel-title {
+  font-family: 'Bitter', serif;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 14px;
+}
+
+/* Scouting cards */
+.scout-card {
+  border-radius: 12px;
+  padding: 14px;
+  margin-bottom: 10px;
+  border-left: 4px solid;
+}
+
+.scout-card.high { background: var(--red-50); border-left-color: var(--red-700); }
+.scout-card.medium { background: var(--gold-50); border-left-color: var(--gold-700); }
+.scout-card.low { background: var(--green-50); border-left-color: var(--green-700); }
+
+.scout-priority {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 5px;
+}
+
+.scout-card.high .scout-priority { color: var(--red-700); }
+.scout-card.medium .scout-priority { color: var(--gold-700); }
+.scout-card.low .scout-priority { color: var(--green-700); }
+
+.scout-item { font-size: 14px; font-weight: 600; color: var(--text-primary); margin-bottom: 4px; }
+.scout-action { font-size: 12px; color: var(--text-secondary); }
+
+/* Disease cards */
+.disease-card {
+  border: 1px solid var(--border-light);
+  border-radius: 14px;
+  padding: 16px;
+  margin-bottom: 12px;
+}
+
+.disease-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.disease-name { font-family: 'Bitter', serif; font-size: 15px; font-weight: 700; color: var(--text-primary); }
+
+.risk-badge {
+  padding: 3px 10px;
+  border-radius: 100px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.risk-badge.high { background: var(--red-50); color: var(--red-700); }
+.risk-badge.medium { background: var(--gold-50); color: var(--gold-700); }
+.risk-badge.low { background: var(--green-50); color: var(--green-700); }
+.risk-badge.planning { background: #E3F2FD; color: #1565C0; }
+
+.disease-region { font-size: 12px; color: var(--text-muted); margin-bottom: 6px; }
+.disease-symptoms { font-size: 13px; color: var(--text-secondary); line-height: 1.6; }
+
+/* Nutrient cards */
+.nutrient-card {
+  background: #F9FBF7;
+  border: 1px solid var(--green-100);
+  border-radius: 14px;
+  padding: 16px;
+  margin-bottom: 12px;
+}
+
+.nutrient-name { font-family: 'Bitter', serif; font-size: 15px; font-weight: 700; color: var(--green-700); margin-bottom: 8px; }
+.nutrient-note { font-size: 13px; color: var(--text-secondary); line-height: 1.7; margin-bottom: 10px; }
+
+.nutrient-cost {
+  background: var(--green-50);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 12px;
+  color: var(--green-900);
+  font-weight: 500;
+}
+
+/* Economics */
+.econ-intro { font-size: 12px; color: var(--text-muted); margin-bottom: 14px; }
+
+.acreage-control {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 18px;
+  flex-wrap: wrap;
+}
+
+.acreage-label { font-family: 'Bitter', serif; font-size: 14px; color: var(--text-secondary); }
+
+.acreage-slider {
+  flex: 1;
+  min-width: 120px;
+  accent-color: var(--green-700);
+  height: 6px;
+}
+
+.acreage-value {
+  font-family: 'IBM Plex Mono', monospace;
+  font-weight: 700;
+  font-size: 16px;
+  color: var(--green-700);
+  background: var(--green-50);
+  padding: 4px 14px;
+  border-radius: 8px;
+  min-width: 90px;
+  text-align: center;
+}
+
+.econ-card {
+  background: white;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 10px;
+  border: 1px solid var(--border-light);
+}
+
+.econ-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.econ-action { font-weight: 600; font-size: 14px; color: var(--text-primary); flex: 1; }
+
+.econ-cost-per-acre {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 13px;
+  color: var(--rust);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.econ-metrics {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 8px;
+}
+
+.econ-metric {
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-size: 12px;
+}
+
+.econ-metric.cost { background: var(--gold-50); }
+.econ-metric.benefit { background: var(--green-50); }
+.econ-metric.roi { background: #F3E5F5; }
+
+.econ-metric-label { color: var(--text-muted); margin-bottom: 2px; font-size: 11px; }
+.econ-metric.cost .econ-metric-value { font-weight: 700; color: var(--rust); font-family: 'IBM Plex Mono', monospace; }
+.econ-metric.benefit .econ-metric-value { font-weight: 600; color: var(--green-700); font-size: 11px; }
+.econ-metric.roi .econ-metric-value { font-weight: 600; color: #6A1B9A; font-size: 11px; }
+
+/* AI Scanner overlay */
+.ai-overlay {
+  background: white;
+  border-radius: 20px;
+  overflow: hidden;
+  margin-bottom: 16px;
+  box-shadow: 0 4px 28px rgba(0,0,0,0.1);
+  border: 1px solid rgba(0,0,0,0.04);
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.ai-scan-area {
+  width: 200px; height: 200px;
+  border-radius: 20px;
+  background: var(--earth);
+  margin: 0 auto 20px;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.scan-line {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 4px;
+  background: var(--green-500);
+  box-shadow: 0 0 20px var(--green-500);
+  animation: scanMove 1.5s ease-in-out infinite;
+}
+
+@keyframes scanMove {
+  0% { top: 0; }
+  50% { top: calc(100% - 4px); }
+  100% { top: 0; }
+}
+
+.scan-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--green-50);
+  border-radius: 100px;
+  padding: 10px 22px;
+}
+
+.scan-spinner {
+  width: 18px; height: 18px;
+  border: 3px solid var(--green-700);
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.scan-text { font-weight: 600; color: var(--green-700); font-size: 14px; }
+
+/* AI Result */
+.ai-result-header {
+  background: linear-gradient(135deg, var(--green-900), var(--green-700));
+  padding: 14px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.ai-result-header span { color: white; font-weight: 600; font-size: 14px; }
+
+.ai-close-btn {
+  background: rgba(255,255,255,0.2);
+  border: none;
+  color: white;
+  border-radius: 8px;
+  padding: 6px 14px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  transition: background 0.2s;
+}
+
+.ai-close-btn:hover { background: rgba(255,255,255,0.3); }
+
+.ai-result-body { padding: 20px; }
+
+.ai-result-top { display: flex; gap: 16px; margin-bottom: 16px; flex-wrap: wrap; }
+
+.ai-result-info { flex: 1; min-width: 180px; }
+
+.ai-result-name { font-family: 'Bitter', serif; font-size: 18px; font-weight: 700; color: var(--text-primary); margin-bottom: 8px; }
+
+.ai-badges { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
+
+.ai-badge {
+  padding: 3px 10px;
+  border-radius: 100px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.ai-badge.confidence { background: var(--green-50); color: var(--green-700); }
+.ai-badge.severity-early { background: var(--gold-50); color: var(--gold-700); }
+.ai-badge.severity-moderate { background: var(--red-50); color: var(--red-700); }
+
+.ai-result-desc { font-size: 13px; color: var(--text-secondary); line-height: 1.65; }
+
+.ai-action-box {
+  border-radius: 12px;
+  padding: 14px;
+  margin-bottom: 12px;
+}
+
+.ai-action-box.action { background: var(--green-50); }
+.ai-action-box.economic { background: var(--gold-50); }
+
+.ai-action-label {
+  font-weight: 700;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 6px;
+}
+
+.ai-action-box.action .ai-action-label { color: var(--green-900); }
+.ai-action-box.economic .ai-action-label { color: var(--gold-700); }
+
+.ai-action-text { font-size: 13px; line-height: 1.65; }
+.ai-action-box.action .ai-action-text { color: var(--green-700); }
+.ai-action-box.economic .ai-action-text { color: var(--text-secondary); }
+
+/* Leaf SVG in scan */
+.leaf-svg { border-radius: 12px; }
+
+/* Footer */
+.app-footer {
+  text-align: center;
+  padding: 14px 16px;
+  background: rgba(46,125,50,0.06);
+  border-radius: 12px;
+  font-size: 11px;
+  color: var(--text-muted);
+  line-height: 1.7;
+}
+
+.app-footer strong { color: var(--green-700); }
+
+/* Responsive */
+@media (max-width: 400px) {
+  .econ-metrics { grid-template-columns: 1fr; }
+  .ai-result-top { flex-direction: column; }
+}
+</style>
+</head>
+<body>
+
+<div class="app" id="app"></div>
+
+<script>
+// ──────────────── DATA ────────────────
+
+const STAGES = [
+  { id:"VE", name:"Emergence", color:"#81C784", week:"May W2" },
+  { id:"VC", name:"Cotyledon", color:"#66BB6A", week:"May W3" },
+  { id:"V2", name:"2nd Node", color:"#4CAF50", week:"Jun W1" },
+  { id:"V4", name:"4th Node", color:"#43A047", week:"Jun W3" },
+  { id:"V6", name:"6th Node", color:"#388E3C", week:"Jul W1" },
+  { id:"R1", name:"Flowering", color:"#F9A825", week:"Jul W2" },
+  { id:"R3", name:"Pod Set", color:"#F57F17", week:"Aug W1" },
+  { id:"R5", name:"Seed Fill", color:"#E65100", week:"Aug W3" },
+  { id:"R7", name:"Maturity", color:"#BF360C", week:"Sep W2" },
+];
+
+const STAGE_DATA = {
+  VE: {
+    title: "Emergence (VE)",
+    scouting: [
+      { priority:"high", item:"Stand count — check 3+ locations per field", action:"Replant if below 80,000 plants/acre" },
+      { priority:"medium", item:"Seedling diseases — Pythium, Phytophthora", action:"Assess seed treatment effectiveness" },
+      { priority:"low", item:"Early weed pressure — waterhemp, marestail", action:"Pre-emergence herbicide timing window" },
+    ],
+    diseases: [
+      { name:"Pythium Seedling Blight", risk:"Medium", symptoms:"Soft, rotted seeds; damping-off of seedlings; brown, water-soaked roots", region:"Statewide — worse in wet, cool soils" },
+      { name:"Phytophthora Root Rot", risk:"High", symptoms:"Wilted, yellowed seedlings; chocolate-brown discoloration on stems", region:"Southern Illinois — poorly drained soils" },
+    ],
+    nutrients: [
+      { nutrient:"Phosphorus (P)", note:"Critical at emergence for root establishment. Banded P with planter is 15-20% more efficient than broadcast.", costBenefit:"+2.1 bu/acre avg. response to starter P in low-testing soils" },
+      { nutrient:"Potassium (K)", note:"Verify fall soil test K levels. Deficiency symptoms won't appear until V2-V3 but root uptake begins now.", costBenefit:"K application at $0.45/lb K₂O; breakeven at ~1.5 bu/acre yield gain" },
+    ],
+    economics: [
+      { action:"Replant decision (stand < 80K)", costPerAcre:45, expectedBenefit:"4-8 bu/acre recovery", roi:"Positive if stand < 60K; marginal at 70-80K" },
+      { action:"Starter fertilizer (2×2 band P)", costPerAcre:12, expectedBenefit:"1.5-3 bu/acre", roi:"+$3-18/acre net return at $10/bu beans" },
+    ]
+  },
+  VC: {
+    title: "Cotyledon (VC)",
+    scouting: [
+      { priority:"high", item:"Continue stand assessment if emergence was uneven", action:"Final replant window decision" },
+      { priority:"medium", item:"Bean leaf beetle feeding on cotyledons", action:"Treat if >50% defoliation and 5+ beetles per plant" },
+      { priority:"low", item:"Slug damage in no-till / high-residue fields", action:"Monitor — baits if severe stand loss" },
+    ],
+    diseases: [
+      { name:"Rhizoctonia Root Rot", risk:"Medium", symptoms:"Reddish-brown lesions on hypocotyl near soil line; constricted stem", region:"Central IL — warm, dry soils" },
+    ],
+    nutrients: [
+      { nutrient:"Manganese (Mn)", note:"Begin watching in high-pH soils (>7.0). Foliar Mn may be needed by V2.", costBenefit:"Foliar Mn at $5-7/acre; 1-3 bu/acre response in deficient fields" },
+    ],
+    economics: [
+      { action:"Bean leaf beetle treatment", costPerAcre:10, expectedBenefit:"1-2 bu/acre saved", roi:"Treat only if threshold met — otherwise negative ROI" },
+    ]
+  },
+  V2: {
+    title: "Second Trifoliate (V2)",
+    scouting: [
+      { priority:"high", item:"Post-emergence herbicide timing — waterhemp 2-3 inches", action:"Apply POST herbicide within 7 days" },
+      { priority:"high", item:"Iron Deficiency Chlorosis (IDC) in high-pH soils", action:"Assess severity; foliar iron if >3.0 on 1-5 scale" },
+      { priority:"medium", item:"Soybean aphid scouting begins", action:"Monitor — threshold is 250/plant with increasing populations" },
+    ],
+    diseases: [
+      { name:"Sudden Death Syndrome (SDS)", risk:"High", symptoms:"Root infection happening below ground; foliar symptoms won't appear until R1-R3", region:"Southern IL — infection occurs now, symptoms later" },
+      { name:"Brown Stem Rot", risk:"Medium", symptoms:"No visible symptoms yet — infection can begin now in susceptible varieties", region:"Central-North IL" },
+    ],
+    nutrients: [
+      { nutrient:"Iron (Fe)", note:"IDC common in calcareous soils, pH >7.3. Foliar chelated iron can reduce severity. Variety selection is the #1 management tool.", costBenefit:"Foliar Fe at $8-12/acre; 2-5 bu/acre recovery in moderate IDC" },
+      { nutrient:"Nitrogen fixation", note:"Nodulation should be establishing. Check roots for pink/red nodules — indicates active N fixation.", costBenefit:"No action cost; verification prevents unnecessary N application ($30-40/acre saved)" },
+    ],
+    economics: [
+      { action:"POST herbicide application (waterhemp)", costPerAcre:22, expectedBenefit:"5-15 bu/acre protected", roi:"Almost always positive — waterhemp yield loss is severe" },
+      { action:"Foliar iron for IDC", costPerAcre:10, expectedBenefit:"2-5 bu/acre in moderate IDC", roi:"+$10-40/acre net at $10/bu beans" },
+    ]
+  },
+  V4: {
+    title: "Fourth Trifoliate (V4)",
+    scouting: [
+      { priority:"high", item:"Weed escapes — assess POST herbicide effectiveness", action:"Plan second-pass herbicide if needed" },
+      { priority:"medium", item:"Soybean cyst nematode (SCN) — soil sampling", action:"Fall soil samples recommended; plan variety rotation" },
+      { priority:"medium", item:"Japanese beetle defoliation beginning", action:"Treat if >30% defoliation during vegetative stages" },
+    ],
+    diseases: [
+      { name:"Septoria Brown Spot", risk:"Medium", symptoms:"Dark brown, angular spots on lower leaves; early defoliation", region:"Statewide — lower canopy in humid conditions" },
+    ],
+    nutrients: [
+      { nutrient:"Sulfur (S)", note:"Deficiency can mimic N deficiency — pale upper leaves. More common in sandy, low-OM soils in S. Illinois.", costBenefit:"Foliar S at $6-8/acre; 1-3 bu/acre response if deficient" },
+    ],
+    economics: [
+      { action:"Second-pass POST herbicide", costPerAcre:18, expectedBenefit:"3-8 bu/acre if escapes present", roi:"Positive if weed pressure is moderate-heavy" },
+      { action:"SCN soil sampling", costPerAcre:3, expectedBenefit:"Guides variety selection next season", roi:"Long-term: 5-15 bu/acre protected by resistant varieties" },
+    ]
+  },
+  V6: {
+    title: "Sixth Trifoliate (V6)",
+    scouting: [
+      { priority:"high", item:"Canopy closure assessment — rows should be filling", action:"Late planting or thin stands may need adjusted expectations" },
+      { priority:"high", item:"Pre-R1 fungicide planning", action:"Evaluate disease history and variety susceptibility" },
+      { priority:"medium", item:"Spider mites in field edges — hot, dry conditions", action:"Scout field borders; treat if populations building" },
+    ],
+    diseases: [
+      { name:"Frogeye Leaf Spot", risk:"High", symptoms:"Circular gray-brown spots with dark borders on upper leaves", region:"Southern IL — warm, humid; fungicide-resistant strains present" },
+    ],
+    nutrients: [
+      { nutrient:"Boron (B)", note:"Becomes important approaching flowering. Foliar B can support pod set. Most responsive in sandy soils.", costBenefit:"Foliar B at $4-6/acre; 0.5-2 bu/acre response" },
+    ],
+    economics: [
+      { action:"Pre-R1 fungicide planning", costPerAcre:0, expectedBenefit:"Prepares for optimal R3 timing", roi:"Planning cost is zero; positions for best timing" },
+      { action:"Spider mite treatment (border spray)", costPerAcre:8, expectedBenefit:"2-6 bu/acre saved in hot years", roi:"Positive in drought stress; often unnecessary normally" },
+    ]
+  },
+  R1: {
+    title: "Beginning Flowering (R1)",
+    scouting: [
+      { priority:"high", item:"Soybean aphid threshold — 250/plant, populations increasing", action:"Apply insecticide; do not wait past R3" },
+      { priority:"high", item:"White mold risk assessment — dense canopy, wet conditions", action:"Fungicide at R1-R2 if history and conditions warrant" },
+      { priority:"high", item:"SDS foliar symptoms beginning to appear", action:"Confirm diagnosis; no in-season treatment — plan variety change" },
+    ],
+    diseases: [
+      { name:"White Mold (Sclerotinia)", risk:"High", symptoms:"Fluffy white mycelium on stems; wilted plants with bleached stems", region:"Central-North IL — cool, wet, dense canopy" },
+      { name:"Sudden Death Syndrome", risk:"High", symptoms:"Interveinal chlorosis and necrosis on upper leaves; roots show blue discoloration", region:"Southern IL — symptoms appear now from earlier infection" },
+    ],
+    nutrients: [
+      { nutrient:"Foliar fertilizer timing", note:"R1-R3 is the critical window for foliar micronutrient applications. Combine with fungicide pass to reduce application cost.", costBenefit:"Combined foliar + fungicide saves $4-6/acre in application costs" },
+    ],
+    economics: [
+      { action:"Aphid treatment at threshold", costPerAcre:14, expectedBenefit:"5-12 bu/acre protected", roi:"Strongly positive when threshold is met" },
+      { action:"White mold fungicide (R1 timing)", costPerAcre:20, expectedBenefit:"3-8 bu/acre in high-risk fields", roi:"Positive with history; marginal in low-risk fields" },
+    ]
+  },
+  R3: {
+    title: "Beginning Pod (R3)",
+    scouting: [
+      { priority:"high", item:"Fungicide application — R3 is optimal timing for most diseases", action:"Apply if disease pressure or conditions warrant" },
+      { priority:"high", item:"Frogeye leaf spot — check upper canopy leaves", action:"Fungicide if >10% incidence on upper leaves" },
+      { priority:"medium", item:"Brown stem rot — split stems to check for internal browning", action:"No in-season treatment; plan resistant variety next year" },
+    ],
+    diseases: [
+      { name:"Frogeye Leaf Spot", risk:"High", symptoms:"Gray-brown circular lesions with dark purple-brown borders on upper leaves", region:"Statewide — strobilurin-resistant strains in S. IL" },
+      { name:"Cercospora Leaf Blight", risk:"Medium", symptoms:"Purple discoloration on upper leaf surfaces; leather-like leaf texture", region:"Southern IL — late-season warm/humid" },
+    ],
+    nutrients: [
+      { nutrient:"Potassium (K)", note:"K demand peaks during pod fill. Deficiency shows as marginal leaf scorch on upper canopy.", costBenefit:"If deficiency present, yield loss of 3-8 bu/acre is likely already occurring" },
+    ],
+    economics: [
+      { action:"R3 fungicide application", costPerAcre:18, expectedBenefit:"3-7 bu/acre average response", roi:"+$12-52/acre net at $10/bu; most consistent ROI timing" },
+      { action:"Combined fungicide + insecticide + foliar", costPerAcre:28, expectedBenefit:"5-12 bu/acre combined", roi:"Best value when multiple pressures present" },
+    ]
+  },
+  R5: {
+    title: "Beginning Seed Fill (R5)",
+    scouting: [
+      { priority:"high", item:"Late-season defoliation — stink bugs, bean leaf beetle", action:"Treat if >20% defoliation during R5-R6" },
+      { priority:"medium", item:"Green stem syndrome watch", action:"Monitor — may delay harvest; no treatment" },
+      { priority:"medium", item:"Pod damage from bean leaf beetle (clipping)", action:"Treat if 10%+ pods show damage" },
+    ],
+    diseases: [
+      { name:"Pod & Stem Blight", risk:"Medium", symptoms:"Rows of pycnidia (black dots) on stems; can cause seed quality issues", region:"Statewide — wet late-season conditions" },
+    ],
+    nutrients: [
+      { nutrient:"No additional applications", note:"Nutrient uptake is declining. Focus on protecting existing yield through pest/disease management.", costBenefit:"Foliar applications after R5 rarely show positive ROI" },
+    ],
+    economics: [
+      { action:"Late-season insecticide for pod feeders", costPerAcre:12, expectedBenefit:"2-5 bu/acre if threshold met", roi:"Positive only if defoliation/pod damage thresholds met" },
+    ]
+  },
+  R7: {
+    title: "Beginning Maturity (R7)",
+    scouting: [
+      { priority:"medium", item:"Harvest timing — monitor moisture for optimal harvest", action:"Target 13% moisture; avoid losses from shattering" },
+      { priority:"low", item:"Document disease observations for next season's planning", action:"Note SDS, SCN, white mold fields for variety/rotation changes" },
+      { priority:"low", item:"Post-harvest soil sampling for SCN and nutrients", action:"Plan fall sampling within 2 weeks of harvest" },
+    ],
+    diseases: [
+      { name:"Season Review", risk:"Planning", symptoms:"Document which diseases were observed in which fields for next year's variety selection and management planning", region:"All regions" },
+    ],
+    nutrients: [
+      { nutrient:"Fall soil testing", note:"Ideal timing for P, K, and pH testing. Results guide fall fertilizer applications and next year's planning.", costBenefit:"Soil tests at $10-15/sample; prevent $20-40/acre in misapplied fertilizer" },
+    ],
+    economics: [
+      { action:"Timely harvest (minimize shatter loss)", costPerAcre:0, expectedBenefit:"1-5 bu/acre saved vs. delayed harvest", roi:"Pure profit — no additional cost" },
+      { action:"Fall soil + SCN sampling", costPerAcre:12, expectedBenefit:"Optimized inputs next season", roi:"Prevents $20-40/acre in wasted inputs" },
+    ]
+  },
+};
+
+const AI_RESULTS = [
+  { name:"Sudden Death Syndrome (SDS)", confidence:94, severity:"Moderate", pattern:"sds",
+    desc:"Interveinal chlorosis and necrosis on upper canopy leaves. Veins remain green while tissue between veins turns yellow then brown.",
+    action:"No in-season fungicide treatment is effective for SDS. Document affected areas and plan to switch to SDS-resistant varieties next season. Avoid early planting in these fields.",
+    economic:"Estimated yield impact: 5-15 bu/acre loss depending on severity and timing of onset." },
+  { name:"Frogeye Leaf Spot", confidence:89, severity:"Early", pattern:"frogeye",
+    desc:"Circular to angular spots with gray centers and dark brown to reddish-purple borders on upper canopy leaves.",
+    action:"Apply fungicide at R3 timing. In Southern IL, use products effective against strobilurin-resistant strains (e.g., triazole-based). Check with Dr. X's current resistance monitoring.",
+    economic:"Untreated yield loss: 3-8 bu/acre. Fungicide application cost: ~$18/acre. Net ROI: +$12-62/acre." },
+  { name:"Iron Deficiency Chlorosis (IDC)", confidence:91, severity:"Moderate", pattern:"idc",
+    desc:"Interveinal yellowing on newer upper leaves. Veins remain distinctly green. Commonly seen in high-pH, calcareous soils.",
+    action:"Apply foliar chelated iron (EDDHA form preferred). Select IDC-tolerant varieties for this field in future seasons. Consider in-furrow iron chelate at planting.",
+    economic:"Foliar iron cost: $8-12/acre. Expected recovery: 2-5 bu/acre. Net ROI: +$8-38/acre at $10/bu beans." },
+];
+
+// ──────────────── STATE ────────────────
+
+let state = {
+  stage: "R1",
+  tab: "scout",
+  region: "southern",
+  screen: "main", // main | scanning | result
+  aiResult: null,
+  acres: 500,
+};
+
+// ──────────────── LEAF SVG BUILDER ────────────────
+
+function leafSVG(pattern, size) {
+  const palettes = {
+    sds:     { bg:"#4a7c59", leaf:"#5C8A4D", vein:"#2E5339", spots:'<ellipse cx="70" cy="65" rx="12" ry="8" fill="#8B7332" opacity="0.8"/><ellipse cx="110" cy="80" rx="10" ry="14" fill="#8B7332" opacity="0.7"/><ellipse cx="80" cy="105" rx="14" ry="9" fill="#6B5322" opacity="0.6"/>' },
+    frogeye: { bg:"#4a7c59", leaf:"#5C8A4D", vein:"#2E5339", spots:'<circle cx="72" cy="62" r="9" fill="#8D8D8D" stroke="#4E342E" stroke-width="2"/><circle cx="108" cy="78" r="7" fill="#9E9E9E" stroke="#4E342E" stroke-width="2"/><circle cx="85" cy="100" r="10" fill="#8D8D8D" stroke="#4E342E" stroke-width="2"/><circle cx="100" cy="55" r="6" fill="#9E9E9E" stroke="#4E342E" stroke-width="2"/>' },
+    idc:     { bg:"#C5B358", leaf:"#D4C56A", vein:"#4a7c59", spots:'<line x1="90" y1="30" x2="90" y2="145" stroke="#4a7c59" stroke-width="3"/>' },
+  };
+  const p = palettes[pattern] || palettes.sds;
+  const veins = [40,60,80,100,120].map((y,i) =>
+    `<line x1="90" y1="${y}" x2="${55+i*2}" y2="${y-8}" stroke="${p.vein}" stroke-width="1.5" opacity="0.7"/>` +
+    `<line x1="90" y1="${y}" x2="${125-i*2}" y2="${y-8}" stroke="${p.vein}" stroke-width="1.5" opacity="0.7"/>`
+  ).join('');
+  return `<svg width="${size}" height="${size}" viewBox="0 0 180 180" class="leaf-svg">
+    <rect width="180" height="180" fill="${p.bg}" rx="16"/>
+    <ellipse cx="90" cy="85" rx="55" ry="65" fill="${p.leaf}"/>
+    <line x1="90" y1="30" x2="90" y2="145" stroke="${p.vein}" stroke-width="2.5"/>
+    ${veins}${p.spots}
+    <rect x="130" y="140" width="38" height="28" rx="6" fill="rgba(0,0,0,0.5)"/>
+    <circle cx="149" cy="152" r="8" fill="none" stroke="white" stroke-width="1.5"/>
+    <circle cx="149" cy="152" r="3" fill="white" opacity="0.8"/>
+  </svg>`;
+}
+
+// ──────────────── RENDER ────────────────
+
+function render() {
+  const data = STAGE_DATA[state.stage];
+  const stageIdx = STAGES.findIndex(s => s.id === state.stage);
+  const stageObj = STAGES[stageIdx];
+  const progress = (stageIdx / (STAGES.length - 1)) * 100;
+
+  let html = '';
+
+  // Header
+  html += `
+  <div class="header">
+    <div class="header-left">
+      <div class="logo-icon">🌱</div>
+      <div><div class="logo-title">SoyScout AI</div><div class="logo-sub">INTERACTIVE DEMO</div></div>
+    </div>
+    <div class="demo-badge">DEMO MODE</div>
+  </div>`;
+
+  // Region
+  html += `<div class="region-bar">`;
+  ["southern","central","northern"].forEach(r => {
+    html += `<button class="region-btn${state.region===r?' active':''}" onclick="setState({region:'${r}'})">${r.charAt(0).toUpperCase()+r.slice(1)} IL</button>`;
+  });
+  html += `</div>`;
+
+  // Stage track
+  html += `<div class="stage-panel"><div class="stage-label">Growth Stage</div><div class="stage-track">`;
+  html += `<div class="stage-rail"><div class="stage-progress" style="width:${progress}%"></div></div>`;
+  STAGES.forEach((s, i) => {
+    const isActive = s.id === state.stage;
+    const isPast = stageIdx >= i;
+    let dotClass = 'stage-dot';
+    if (isActive) dotClass += ' active';
+    else if (isPast) dotClass += ' past';
+    const dotStyle = isActive ? `background:${s.color};border-color:${s.color};` : '';
+    const idClass = 'stage-id' + (isActive ? ' active' : '');
+    const idStyle = isActive ? `color:${s.color};` : '';
+    html += `<button class="stage-btn" onclick="setState({stage:'${s.id}',tab:'scout',screen:'main'})">
+      <div class="${dotClass}" style="${dotStyle}"></div>
+      <span class="${idClass}" style="${idStyle}">${s.id}</span>
+    </button>`;
+  });
+  html += `</div></div>`;
+
+  // ── SCANNING SCREEN ──
+  if (state.screen === 'scanning') {
+    html += `<div class="ai-overlay" style="padding:24px;text-align:center;">
+      <div class="ai-scan-area">
+        <div class="scan-line"></div>
+        ${leafSVG('sds', 160)}
+      </div>
+      <div class="scan-status">
+        <div class="scan-spinner"></div>
+        <span class="scan-text">Analyzing leaf image...</span>
+      </div>
+    </div>`;
+    document.getElementById('app').innerHTML = html;
+    return;
+  }
+
+  // ── AI RESULT SCREEN ──
+  if (state.screen === 'result' && state.aiResult) {
+    const r = state.aiResult;
+    const sevClass = r.severity === 'Early' ? 'severity-early' : 'severity-moderate';
+    html += `<div class="ai-overlay">
+      <div class="ai-result-header">
+        <span>🔬 AI Identification Result</span>
+        <button class="ai-close-btn" onclick="setState({screen:'main'})">✕ Close</button>
+      </div>
+      <div class="ai-result-body">
+        <div class="ai-result-top">
+          ${leafSVG(r.pattern, 120)}
+          <div class="ai-result-info">
+            <div class="ai-result-name">${r.name}</div>
+            <div class="ai-badges">
+              <span class="ai-badge confidence">${r.confidence}% confidence</span>
+              <span class="ai-badge ${sevClass}">${r.severity} severity</span>
+            </div>
+            <div class="ai-result-desc">${r.desc}</div>
+          </div>
+        </div>
+        <div class="ai-action-box action">
+          <div class="ai-action-label">✅ Recommended Action</div>
+          <div class="ai-action-text">${r.action}</div>
+        </div>
+        <div class="ai-action-box economic">
+          <div class="ai-action-label">💰 Economic Impact</div>
+          <div class="ai-action-text">${r.economic}</div>
+        </div>
+      </div>
+    </div>`;
+  }
+
+  // ── MAIN SCREEN ──
+  if (state.screen === 'main' || state.screen === 'result') {
+
+    // Stage header
+    html += `<div class="stage-header" style="background:linear-gradient(135deg,${stageObj.color}22,white);border:1px solid ${stageObj.color}33;">
+      <div>
+        <h2>${data.title}</h2>
+        <div class="stage-header-meta">${stageObj.week} · ${state.region.charAt(0).toUpperCase()+state.region.slice(1)} Illinois</div>
+      </div>
+      <button class="scan-btn" onclick="startScan()">📸 Scan Leaf</button>
+    </div>`;
+
+    // Tabs
+    const tabs = [
+      {id:"scout",label:"📋 Scout"},{id:"disease",label:"🦠 Disease"},{id:"nutrient",label:"🧪 Nutrients"},{id:"econ",label:"💰 ROI"}
+    ];
+    html += `<div class="tabs">`;
+    tabs.forEach(t => {
+      html += `<button class="tab-btn${state.tab===t.id?' active':''}" onclick="setState({tab:'${t.id}'})">${t.label}</button>`;
+    });
+    html += `</div>`;
+
+    // Content
+    html += `<div class="content-panel">`;
+
+    if (state.tab === 'scout') {
+      html += `<div class="panel-title">Scouting Priorities</div>`;
+      data.scouting.forEach(s => {
+        html += `<div class="scout-card ${s.priority}">
+          <div class="scout-priority">${s.priority} priority</div>
+          <div class="scout-item">${s.item}</div>
+          <div class="scout-action">→ ${s.action}</div>
+        </div>`;
+      });
+    }
+
+    else if (state.tab === 'disease') {
+      html += `<div class="panel-title">Disease Watch — ${state.region.charAt(0).toUpperCase()+state.region.slice(1)} IL</div>`;
+      data.diseases.forEach(d => {
+        let riskClass = 'medium';
+        if (d.risk.includes('High')) riskClass = 'high';
+        else if (d.risk.includes('Low')) riskClass = 'low';
+        else if (d.risk === 'Planning') riskClass = 'planning';
+        html += `<div class="disease-card">
+          <div class="disease-header">
+            <span class="disease-name">${d.name}</span>
+            <span class="risk-badge ${riskClass}">Risk: ${d.risk}</span>
+          </div>
+          <div class="disease-region">📍 ${d.region}</div>
+          <div class="disease-symptoms"><strong>Symptoms:</strong> ${d.symptoms}</div>
+        </div>`;
+      });
+    }
+
+    else if (state.tab === 'nutrient') {
+      html += `<div class="panel-title">Nutrient Management</div>`;
+      data.nutrients.forEach(n => {
+        html += `<div class="nutrient-card">
+          <div class="nutrient-name">${n.nutrient}</div>
+          <div class="nutrient-note">${n.note}</div>
+          <div class="nutrient-cost">💰 ${n.costBenefit}</div>
+        </div>`;
+      });
+    }
+
+    else if (state.tab === 'econ') {
+      html += `<div class="panel-title">Per-Acre Economics</div>`;
+      html += `<div class="econ-intro">Adjust your acreage to see projected costs and returns for each management decision at this growth stage.</div>`;
+      html += `<div class="acreage-control">
+        <span class="acreage-label">Your acreage:</span>
+        <input type="range" class="acreage-slider" min="50" max="5000" step="50" value="${state.acres}" oninput="setState({acres:Number(this.value)})">
+        <span class="acreage-value">${state.acres.toLocaleString()} ac</span>
+      </div>`;
+      data.economics.forEach(d => {
+        const total = d.costPerAcre * state.acres;
+        html += `<div class="econ-card">
+          <div class="econ-header">
+            <span class="econ-action">${d.action}</span>
+            <span class="econ-cost-per-acre">$${d.costPerAcre}/acre</span>
+          </div>
+          <div class="econ-metrics">
+            <div class="econ-metric cost">
+              <div class="econ-metric-label">Total Cost</div>
+              <div class="econ-metric-value">$${total.toLocaleString()}</div>
+            </div>
+            <div class="econ-metric benefit">
+              <div class="econ-metric-label">Benefit Est.</div>
+              <div class="econ-metric-value">${d.expectedBenefit}</div>
+            </div>
+            <div class="econ-metric roi">
+              <div class="econ-metric-label">ROI</div>
+              <div class="econ-metric-value">${d.roi}</div>
+            </div>
+          </div>
+        </div>`;
+      });
+    }
+
+    html += `</div>`; // end content-panel
+  }
+
+  // Footer
+  html += `<div class="app-footer">
+    <strong>SoyScout AI Demo</strong> — This is a prototype demonstrating the proposed tool's functionality.
+    Data shown is representative and based on published Illinois extension recommendations.<br>
+    SIU Carbondale · Khalil · ISA FY27 Proposal
+  </div>`;
+
+  document.getElementById('app').innerHTML = html;
+}
+
+// ──────────────── STATE MANAGEMENT ────────────────
+
+function setState(partial) {
+  Object.assign(state, partial);
+  render();
+}
+
+function startScan() {
+  setState({ screen: 'scanning' });
+  setTimeout(() => {
+    const result = AI_RESULTS[Math.floor(Math.random() * AI_RESULTS.length)];
+    setState({ screen: 'result', aiResult: result });
+  }, 2500);
+}
+
+// ──────────────── INIT ────────────────
+
+render();
+</script>
+
+</body>
+</html>
